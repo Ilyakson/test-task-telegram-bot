@@ -11,16 +11,6 @@ URL = "https://paper-trader.frwd.one"
 deadline_list = ["5m", "15m", "1h", "4h", "1d", "1w", "1M"]
 
 
-@BOT.message_handler(commands=["start"])
-def start(message):
-    BOT.send_message(
-        message.chat.id,
-        "<b>Hello, pick the trading pair (for example: BTCUSDT)</b>",
-        parse_mode="html"
-    )
-
-
-@BOT.message_handler()
 def work_with_site(message):
     payload = {
         "pair": message.text,
@@ -34,7 +24,21 @@ def work_with_site(message):
     soup = BeautifulSoup(response.text, "html.parser")
     img = soup.find("img")
     image = img['src']
-    BOT.send_photo(message.chat.id, f"{URL}{image[1:]}")
+    return image[1:]
+
+
+@BOT.message_handler(commands=["start"])
+def start(message):
+    BOT.send_message(
+        message.chat.id,
+        "<b>Hello, pick the trading pair (for example: BTCUSDT)</b>",
+        parse_mode="html"
+    )
+
+
+@BOT.message_handler()
+def sending_picture(message):
+    BOT.send_photo(message.chat.id, f"{URL}{work_with_site(message)}")
 
 
 BOT.polling(none_stop=True)
