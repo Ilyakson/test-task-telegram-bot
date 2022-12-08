@@ -6,12 +6,20 @@ import requests
 
 import random
 
-BOT = telebot.TeleBot(os.getenv("BOT_KEY"))
+bot = telebot.TeleBot(os.getenv("BOT_KEY"))
 URL = "https://paper-trader.frwd.one"
 deadline_list = ["5m", "15m", "1h", "4h", "1d", "1w", "1M"]
+crypto_pair = ["BNBUSDT", "ETHUSDT", "BTCUSDT"]
 
 
-def work_with_site(message):
+def validate_message(message):
+    if message.text in crypto_pair:
+        return True
+    else:
+        return False
+
+
+def get_image(message):
     payload = {
         "pair": message.text,
         "timeframe": deadline_list[random.randint(0, 6)],
@@ -27,18 +35,25 @@ def work_with_site(message):
     return image[1:]
 
 
-@BOT.message_handler(commands=["start"])
+@bot.message_handler(commands=["start"])
 def start(message):
-    BOT.send_message(
+    bot.send_message(
         message.chat.id,
-        "<b>Hello, pick the trading pair (for example: BTCUSDT)</b>",
+        f"<b>Hello, pick the trading pair, current pair: {crypto_pair}</b>",
         parse_mode="html"
     )
 
 
-@BOT.message_handler()
-def sending_picture(message):
-    BOT.send_photo(message.chat.id, f"{URL}{work_with_site(message)}")
+@bot.message_handler()
+def send_image(message):
+    if validate_message(message):
+        bot.send_photo(message.chat.id, f"{URL}{get_image(message)}")
+    else:
+        bot.send_message(
+            message.chat.id,
+            f"<b>Please input correct value of trading pair, to see all current pairs input /start</b>",
+            parse_mode="html"
+        )
 
 
-BOT.polling(none_stop=True)
+bot.polling(none_stop=True)
